@@ -1,0 +1,11 @@
+{
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "true"
+      ],
+      "order": "11"
+    }
+  ]
+}
