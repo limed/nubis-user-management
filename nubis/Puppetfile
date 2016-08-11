@@ -1,0 +1,4 @@
+forge "https://forgeapi.puppetlabs.com"
+
+mod "nubis/nubis_users",
+    :git    => 'https://github.com/limed/nubis-puppet-nubis_users'
