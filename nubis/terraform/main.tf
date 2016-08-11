@@ -34,7 +34,7 @@ resource "aws_security_group" "user-management" {
     }
 }
 
-resource "atlas_artifact" "nubis-nat" {
+resource "atlas_artifact" "nubis-user-management" {
   count = "${var.enabled}"
 
   lifecycle {
@@ -95,7 +95,7 @@ resource "aws_launch_configuration" "user-management" {
     image_id = "${ element(split(",",replace(atlas_artifact.nubis-user-management.id,":",",")) ,1 + index(split(",",replace(atlas_artifact.nubis-user-management.id,":",",")), var.region)) }"
 
     instance_type   = "t2.nano"
-    key_name        = "${var.key_name}"
+    key_name        = "${var.ssh_key_name}"
 
     security_groups = [
       "${aws_security_group.user-management.id}",
@@ -110,4 +110,31 @@ NUBIS_ACCOUNT=${var.service_name}
 NUBIS_DOMAIN=${var.domain}
 EOF
 
+}
+
+resource "aws_iam_role" "consul" {
+  count = "${var.enabled}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  name = "${var.project}-${var.environments}-${var.aws_region}"
+  path = "/nubis/user-management/"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+POLICY
 }
