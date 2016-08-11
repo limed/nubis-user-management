@@ -103,4 +103,11 @@ resource "aws_launch_configuration" "user-management" {
       "${var.shared_services_security_group_id}",
     ]
 
+    user_data = <<EOF
+NUBIS_PROJECT=${var.project}
+NUBIS_ENVIRONMENT=${var.environment}
+NUBIS_ACCOUNT=${var.service_name}
+NUBIS_DOMAIN=${var.domain}
+EOF
+
 }
