@@ -29,7 +29,7 @@ resource "aws_security_group" "user-management" {
 
     tags = {
         Region              = "${var.aws_region}"
-        Environment         = "${var.environment}"
+        Environment         = "${var.environments}"
         TechnicalContact    = "${var.technical_contact}"
     }
 }
@@ -105,7 +105,7 @@ resource "aws_launch_configuration" "user-management" {
 
     user_data = <<EOF
 NUBIS_PROJECT=${var.project}
-NUBIS_ENVIRONMENT=${var.environment}
+NUBIS_ENVIRONMENT=${var.environments}
 NUBIS_ACCOUNT=${var.service_name}
 NUBIS_DOMAIN=${var.domain}
 EOF
@@ -141,7 +141,7 @@ POLICY
 
 resource "aws_iam_role_policy" "user-management" {
     count   = "${var.enabled}"
-    name    = "${var.project}-${var.environment}-${var.aws_region}"
+    name    = "${var.project}-${var.environments}-${var.aws_region}"
     role    = "${aws_iam_role.user-management.id}"
 
     policy  = <<EOF
