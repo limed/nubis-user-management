@@ -1,7 +1,7 @@
 
 provider "aws" {
     profile = "${var.aws_profile}"
-    region  = "${var.region}"
+    region  = "${var.aws_region}"
 }
 
 resource "aws_security_group" "user-management" {
@@ -28,7 +28,7 @@ resource "aws_security_group" "user-management" {
     }
 
     tags = {
-        Region              = "${var.region}"
+        Region              = "${var.aws_region}"
         Environment         = "${var.environment}"
         TechnicalContact    = "${var.technical_contact}"
     }
@@ -92,7 +92,7 @@ resource "aws_launch_configuration" "user-management" {
     # the id is "region:ami,region:ami,region:ami"
     # so we split it all and find the index of the region
     # add on, and pick that element
-    image_id = "${ element(split(",",replace(atlas_artifact.nubis-user-management.id,":",",")) ,1 + index(split(",",replace(atlas_artifact.nubis-user-management.id,":",",")), var.region)) }"
+    image_id = "${ element(split(",",replace(atlas_artifact.nubis-user-management.id,":",",")) ,1 + index(split(",",replace(atlas_artifact.nubis-user-management.id,":",",")), var.aws_region)) }"
 
     instance_type   = "t2.nano"
     key_name        = "${var.ssh_key_name}"
@@ -112,7 +112,7 @@ EOF
 
 }
 
-resource "aws_iam_role" "consul" {
+resource "aws_iam_role" "user-management" {
   count = "${var.enabled}"
 
   lifecycle {
@@ -137,4 +137,52 @@ resource "aws_iam_role" "consul" {
   ]
 }
 POLICY
+}
+
+resource "aws_iam_role_policy" "user-management" {
+    count   = "${var.enabled}"
+    name    = "${var.project}-${var.environment}-${var.aws_region}"
+    role    = "${aws_iam_role.user-management.id}"
+
+    policy  = <<EOF
+{
+    "Version": "2012-10-17"
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:AttachRolePolicy",
+                "iam:AttachUserPolicy",
+                "iam:CreateAccessKey",
+                "iam:CreateRole",
+                "iam:CreateUser",
+                "iam:DeleteAccessKey",
+                "iam:DeleteGroupPolicy",
+                "iam:DeleteUser",
+                "iam:DeleteUserPolicy",
+                "iam:GetPolicy",
+                "iam:GetPolicyVersion",
+                "iam:GetRole",
+                "iam:GetRolePolicy",
+                "iam:GetUser",
+                "iam:GetUserPolicy",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListAttachedUserPolicies",
+                "iam:ListInstanceProfiles",
+                "iam:ListInstanceProfilesForRole",
+                "iam:ListPolicies",
+                "iam:ListRolePolicies",
+                "iam:ListRoles",
+                "iam:ListUserPolicies",
+                "iam:ListUsers",
+                "iam:PutRolePolicy",
+                "iam:PutUserPolicy",
+                "iam:UpdateLoginProfile",
+                "iam:UpdateUser"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
 }
